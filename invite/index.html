@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're invited · Afoot</title>
+<meta name="description" content="Join a plan on Afoot.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../style.css">
+<style>
+  .actions{display:flex;flex-direction:column;gap:12px;margin:22px 0}
+  .btn{display:block;text-align:center;padding:16px 20px;border-radius:18px;font-weight:600;text-decoration:none;font-size:17px}
+  .primary{background:var(--forest);color:#fff}
+  .secondary{background:#fff;color:var(--forest);border:1px solid #E4DED2}
+  .code{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+  .code code{flex:1;overflow-wrap:anywhere;background:none;padding:0;font-size:14px}
+  .code button{border:0;background:var(--mint);color:var(--forest);font-weight:600;border-radius:10px;padding:8px 12px;font-size:14px}
+  .muted{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="../"><svg width="46" height="40" viewBox="0 0 46 40" aria-hidden="true"><g transform="translate(-31.2,-34.4)"><circle cx="47" cy="50" r="12" fill="none" stroke="#F6F3EE" stroke-width="7"/><circle cx="47" cy="50" r="4.2" fill="#F2A66B"/><path d="M59 39 V59 Q59 66 65 67.5" fill="none" stroke="#F6F3EE" stroke-width="7" stroke-linecap="round"/><circle cx="70.5" cy="69.8" r="1.8" fill="#F6F3EE" opacity=".75"/><circle cx="75" cy="72.4" r="1.8" fill="#F6F3EE" opacity=".5"/></g></svg><span>afoot</span></a>
+    <h1>You're invited</h1>
+    <p>Someone wants to plan with you on Afoot.</p>
+  </div>
+</header>
+<main>
+<div class="wrap">
+
+  <div id="ok">
+    <div class="actions">
+      <a class="btn primary" id="open" href="#">Open in Afoot</a>
+      <a class="btn secondary" id="store" href="https://play.google.com/store/apps/details?id=com.afoot">Get Afoot on Google Play</a>
+    </div>
+    <p class="muted">Don't have Afoot yet? Install it from Google Play and sign in — you'll join the plan automatically.</p>
+    <div class="card" style="margin-top:14px">
+      <strong>Afoot is in testing.</strong>
+      <p class="muted" style="margin:6px 0 0">If Google Play says the app isn't available, ask the person who invited you to add you as a tester and send you the tester link, then try again.</p>
+    </div>
+
+    <h2>Link didn't open the app?</h2>
+    <p>Copy this invite code, then in Afoot tap <strong>New trip → Join with invite link</strong> and paste it.</p>
+    <div class="code"><code id="token"></code><button id="copy" type="button">Copy</button></div>
+  </div>
+
+  <div id="bad" hidden>
+    <p class="lead">This invite link is incomplete.</p>
+    <p>Ask the person who invited you to share it again from Afoot.</p>
+  </div>
+
+</div>
+</main>
+<footer><div class="wrap nav"><a href="../">Afoot</a><a href="../privacy/">Privacy Policy</a></div></footer>
+<script>
+(function () {
+  var token = new URLSearchParams(location.search).get("token") || "";
+  // Tokens are 32 hex characters; reject anything else rather than pass it on.
+  if (!/^[A-Za-z0-9]{8,64}$/.test(token)) {
+    document.getElementById("ok").hidden = true;
+    document.getElementById("bad").hidden = false;
+    return;
+  }
+  // The referrer carries the invite through the install, so Afoot joins the plan on first launch.
+  var store = "https://play.google.com/store/apps/details?id=com.afoot&referrer=" +
+    encodeURIComponent("invite_token=" + token);
+  // Android: open the installed app at afoot://invite?token=…, or fall back to the Play Store.
+  var intentUrl = "intent://invite?token=" + encodeURIComponent(token) +
+    "#Intent;scheme=afoot;package=com.afoot;S.browser_fallback_url=" + encodeURIComponent(store) + ";end";
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
+  document.getElementById("store").href = store;
+  var open = document.getElementById("open");
+  open.href = isAndroid ? intentUrl : store;
+  document.getElementById("token").textContent = token;
+  document.getElementById("copy").addEventListener("click", function () {
+    var btn = this;
+    (navigator.clipboard ? navigator.clipboard.writeText(token) : Promise.reject())
+      .then(function () { btn.textContent = "Copied"; })
+      .catch(function () { btn.textContent = "Select and copy"; });
+  });
+
+  // Try once automatically; some in-app browsers need the button tap instead.
+  if (isAndroid) setTimeout(function () { location.href = intentUrl; }, 300);
+})();
+</script>
+</body>
+</html>
